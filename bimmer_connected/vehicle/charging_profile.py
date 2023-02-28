@@ -158,11 +158,17 @@ class ChargingProfile(VehicleDataBase):
     def format_for_remote_service(self) -> dict:
         """Format current charging profile as base to be sent to remote service."""
 
+        now = datetime.datetime.now()
+        start_time = now - datetime.timedelta(minutes=10)
+        end_time = now - datetime.timedelta(minutes=9)
+        weekday_name = (now - datetime.timedelta(days=1)).strftime("%A").upper()
+        weekdays = [weekday_name]
+
         return {
             "chargingMode": {
                 "chargingPreference": self.charging_preferences.value,
-                "endTimeSlot": self._format_time(self.preferred_charging_window.end_time),
-                "startTimeSlot": self._format_time(self.preferred_charging_window.start_time),
+                "endTimeSlot": self._format_time(end_time),
+                "startTimeSlot": self._format_time(start_time),
                 "type": MAP_CHARGING_MODE_TO_REMOTE_SERVICE[self.charging_mode],
                 "timerChange": "NO_CHANGE",
             },
@@ -170,7 +176,7 @@ class ChargingProfile(VehicleDataBase):
                 "type": MAP_TIMER_TYPES_TO_REMOTE_SERVICE[self.timer_type],
                 "weeklyTimers": [
                     {
-                        "daysOfTheWeek": t.weekdays,
+                        "daysOfTheWeek": [weekdays,weekdays,t.weekdays,t.weekdays,t.weekdays][t.timer_id],
                         "id": t.timer_id,
                         "time": self._format_time(t.start_time),
                         "timerAction": t.action,
